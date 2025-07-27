@@ -4,7 +4,7 @@ from .models import Movie, FavoriteMovie, Genre
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        fields = ['id', 'name']
+        fields = ['id', 'tmdb_id', 'name']
 
 class MovieSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True, read_only=True)

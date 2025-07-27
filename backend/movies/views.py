@@ -1,14 +1,19 @@
 from rest_framework import generics, permissions
+import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Movie, FavoriteMovie, Genre
 from .services import get_trending_movies, save_trending_movies, search_movies
-from .serializers import MovieSerializer, FavoriteMovieSerializer
+from .serializers import MovieSerializer, FavoriteMovieSerializer, GenreSerializer
 from django.contrib.auth.models import User
 import django_filters
 from django.db.models import Count
+from rest_framework import status
+from decouple import config
+
+TMDB_API_KEY = config('TMDB_API_KEY')
 
 # Implement Filtering by Genre, Date, and Trending
 class MovieFilter(django_filters.FilterSet):
@@ -90,3 +95,28 @@ class RecommendedMoviesView(APIView):
 
         serializer = MovieSerializer(recommended_movies, many=True)
         return Response(serializer.data)
+
+class GenreListView(APIView):
+    def get(self, request):
+        genres = Genre.objects.all()
+        serializer = GenreSerializer(genres, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class GenreMoviesFromTMDb(APIView):
+    def get(self, request, tmdb_id):
+        try:
+            genre = Genre.objects.get(tmdb_id=tmdb_id)
+        except Genre.DoesNotExist:
+            return Response({"error": "Genre not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        url = "https://api.themoviedb.org/3/discover/movie"
+        params = {
+            "api_key": TMDB_API_KEY,
+            "with_genres": genre.tmdb_id,
+            "sort_by": "popularity.desc",
+        }
+
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            return Response(response.json()["results"])
+        return Response({"error": "Failed to fetch movies"}, status=response.status_code)
