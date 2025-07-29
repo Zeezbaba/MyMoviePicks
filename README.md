@@ -42,7 +42,7 @@ A feature-rich backend API for a **Movie Recommender Platform** built with **Dja
 
 ## 📁 Project Structure
 
-  ```bash
+
 .
 ├── MyMoviePicks/                    # Main Django app
 │   ├── models.py           # Movie, Genre, Favorite, Rating models
@@ -58,23 +58,23 @@ A feature-rich backend API for a **Movie Recommender Platform** built with **Dja
 
 ## 🔑 Environment Variables
 
-Create a `.env` file (or use `config()` from `python-decouple`) and define the following:
+- Create a `.env` file (or use `config()` from `python-decouple`) and define the following:
 
-```env
-DEBUG=True
-SECRET_KEY=your-django-secret-key
-TMDB_API_KEY=your-tmdb-api-key
-ALLOWED_HOSTS=*
-REDIS_URL=redis://redis:6379
-DATABASE_URL=postgres://username:password@localhost:5432/dbname
+
+- DEBUG=True
+- SECRET_KEY=your-django-secret-key
+- TMDB_API_KEY=your-tmdb-api-key
+- ALLOWED_HOSTS=*
+- REDIS_URL=redis://redis:6379
+- DATABASE_URL=postgres://username:password@localhost:5432/dbname
 
 ## 🐳 Run Locally with Docker
 
 Make sure **Redis** and **PostgreSQL** services are defined in your `docker-compose.yml` file.
 
-```bash
+
 # Build and start the containers
-docker-compose up --build
+- docker-compose up --build
 
 ## 🧪 API Endpoints
 
@@ -111,7 +111,7 @@ docker-compose up --build
 
 ## 🧠 Caching
 
-To improve performance and reduce TMDb API calls, caching is implemented using **Redis** through **Django’s cache framework**.
+- To improve performance and reduce TMDb API calls, caching is implemented using **Redis** through **Django’s cache framework**.
 
 ### Cached Resources:
 
@@ -124,31 +124,27 @@ To improve performance and reduce TMDb API calls, caching is implemented using *
 
 ### 1. Clone the repository
 
-```bash
-git clone https://github.com/yourusername/movie-api.git
-cd movie-api
+- git clone https://github.com/yourusername/movie-api.git
+- cd movie-api
 
 ### 2. Set up a virtual environment and install dependencies
 
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+- python -m venv venv
+- source venv/bin/activate
+- pip install -r requirements.txt
 
 ### 3. Set up your .env file
 - Refer to the 🔑 Environment Variables section above.
 
 ### 4. Apply database migrations
-```bash
-python manage.py migrate
+- python manage.py migrate
 
 ### 5. Start the development server
-```bash
-python manage.py runserver
 
-- Alternatively, you can run the project using Docker:
-```bash
-docker-compose up
+- python manage.py runserver
+
+## Alternatively, you can run the project using Docker:
+- docker-compose up
 
 ## 📈 Roadmap
 
