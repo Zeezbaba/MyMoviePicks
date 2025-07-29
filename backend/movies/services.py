@@ -1,10 +1,19 @@
 import requests
 from django.conf import settings
+from django.core.cache import cache
 from .models import Movie, Genre
 
 TMDB_API_URL = "https://api.themoviedb.org/3"
 
+CACHE_TIMEOUT = 60 * 60 # 1 hour
+
 def get_trending_movies():
+    cache_key = 'trending_movies'
+    cached_data = cache.get(cache_key)
+
+    if cached_data:
+        return cached_data
+
     url = f"{TMDB_API_URL}/trending/movie/week"
     params = {
         "api_key": settings.TMDB_API_KEY
@@ -13,7 +22,9 @@ def get_trending_movies():
     response = requests.get(url, params=params)
 
     if response.status_code == 200:
-        return response.json().get("results", [])
+        data = response.json().get("results", [])
+        cache.set(cache_key, data, CACHE_TIMEOUT)
+        return data
     else:
         return []
 
@@ -30,19 +41,29 @@ def get_trending_movies():
 #             )
 
 def sync_genres_from_tmdb():
-    url = "https://api.themoviedb.org/3/genre/movie/list"
-    params = {"api_key": settings.TMDB_API_KEY}
+    cache_key = "tmdb_genres"
+    cached_data = cache.get(cache_key)
 
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        genres = response.json().get("genres", [])
-        for genre in genres:
-            Genre.objects.update_or_create(
-                tmdb_id=genre["id"],
-                defaults={"name": genre["name"]}
-            )
+    if cached_data:
+        genres = cached_data
+
     else:
-        print(f"Failed to fetch genres: {response.status_code} - {response.text}")
+        url = "https://api.themoviedb.org/3/genre/movie/list"
+        params = {"api_key": settings.TMDB_API_KEY}
+
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            genres = response.json().get("genres", [])
+            cache.set(cache_key, genres, CACHE_TIMEOUT)
+        else:
+            print(f"Failed to fetch genres: {response.status_code} - {response.text}")
+            return
+
+    for genre in genres:
+        Genre.objects.update_or_create(
+            tmdb_id=genre["id"],
+            defaults={"name": genre["name"]}
+        )
 
 def save_trending_movies():
     movies = get_trending_movies()
@@ -87,6 +108,12 @@ def save_trending_movies():
 
 # Search for movies
 def search_movies(query):
+    cache_key = f"search_movies:{query.lower()}"
+    cached_data = cache.get(cache_key)
+
+    if cached_data:
+        return cached_data
+
     url = f"{TMDB_API_URL}/search/movie"
     params = {
         "api_key": settings.TMDB_API_KEY,
@@ -95,6 +122,25 @@ def search_movies(query):
     response = requests.get(url, params=params)
 
     if response.status_code == 200:
-        return response.json().get("results", [])
+        data = response.json().get("results", [])
+        cache.set(cache_key, data, CACHE_TIMEOUT)
+        return data
     else:
         return []
+
+def get_recommended_movies(movie_id):
+    cache_key = f"recommended_movies:{movie_id}"
+    cached_data = cache.get(cache_key)
+
+    if cached_data:
+        return cached_data
+
+    url = f"{TMDB_API_URL}/movie/{movie_id}/recommendations"
+    params = {"api_key": settings.TMDB_API_KEY}
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        data = response.json().get("results", [])
+        cache.set(cache_key, data, CACHE_TIMEOUT)
+        return data
+    return []
