@@ -89,7 +89,7 @@ def save_trending_movies():
 def search_movies(query):
     url = f"{TMDB_API_URL}/search/movie"
     params = {
-        "api_key": TMDB_API_URL,
+        "api_key": settings.TMDB_API_KEY,
         "query": query
     }
     response = requests.get(url, params=params)

@@ -1,7 +1,10 @@
 from celery import shared_task
 import requests
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+from django.utils.timezone import now
 from decouple import config
 from .models import Movie, Genre
+import json
 
 TMDB_API_KEY = config('TMDB_API_KEY')
 TMDB_TRENDING_URL = 'https://api.themoviedb.org/3/trending/movie/day'
@@ -46,3 +49,26 @@ def sync_trending_movies():
                     movie.genres.add(genre)
 
     return "Trending movies synced successfully."
+
+@shared_task
+def sync_all_genre_movies():
+    genres = Genre.objects.all()
+    for genre in genres:
+        sync_genre_movies.delay(genre.tmdb_id)
+
+def create_or_update_genre_sync_task():
+    # Create or get the interval (e.g., every 6 hours)
+    interval, _ = IntervalSchedule.objects.get_or_create(
+        every=6,
+        period=IntervalSchedule.HOURS,
+    )
+
+    # Now use update_or_create (NOT get_or_create)
+    PeriodicTask.objects.update_or_create(
+        name='Sync Genre Movies',
+        defaults={
+            'interval': interval,
+            'task': 'movies.tasks.sync_all_genre_movies',
+            'args': json.dumps([]),
+        }
+    )

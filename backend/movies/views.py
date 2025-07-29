@@ -4,9 +4,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Movie, FavoriteMovie, Genre
+from .models import Movie, FavoriteMovie, Genre, MovieRating
 from .services import get_trending_movies, save_trending_movies, search_movies
-from .serializers import MovieSerializer, FavoriteMovieSerializer, GenreSerializer
+from .serializers import MovieSerializer, FavoriteMovieSerializer, GenreSerializer, MovieRatingSerializer
 from django.contrib.auth.models import User
 import django_filters
 from django.db.models import Count
@@ -20,10 +20,16 @@ class MovieFilter(django_filters.FilterSet):
     genre = django_filters.NumberFilter(method='filter_by_genre')
     release_year = django_filters.NumberFilter(field_name='release_date', lookup_expr='year')
     trending = django_filters.BooleanFilter(field_name='is_trending')
+    search = django_filters.CharFilter(method='filter_by_text')
 
     class Meta:
         model = Movie
         fields = ['genre', 'release_year', 'trending']
+
+    def filter_by_text(self, queryset, name, value):
+        return queryset.filter(
+            title__icontains=value
+        )
 
 class MovieListView(generics.ListAPIView):
     serializer_class = MovieSerializer
@@ -120,3 +126,11 @@ class GenreMoviesFromTMDb(APIView):
         if response.status_code == 200:
             return Response(response.json()["results"])
         return Response({"error": "Failed to fetch movies"}, status=response.status_code)
+
+class MovieRatingAPIView(generics.CreateAPIView):
+    queryset = MovieRating.objects.all()
+    serializer = MovieRatingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
