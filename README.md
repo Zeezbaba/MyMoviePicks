@@ -124,8 +124,8 @@ Make sure **Redis** and **PostgreSQL** services are defined in your `docker-comp
 
 ### 1. Clone the repository
 
-- git clone https://github.com/yourusername/movie-api.git
-- cd movie-api
+- git clone https://github.com/Zeezbaba/MyMoviePicks.git
+- cd MyMoviePicks
 
 ### 2. Set up a virtual environment and install dependencies
 
