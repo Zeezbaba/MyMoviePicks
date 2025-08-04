@@ -1,12 +1,13 @@
 from celery import shared_task
 import requests
+import os
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from django.utils.timezone import now
 from decouple import config
 from .models import Movie, Genre
 import json
 
-TMDB_API_KEY = config('TMDB_API_KEY')
+TMDB_API_KEY = os.getenv('TMDB_API_KEY')
 TMDB_TRENDING_URL = 'https://api.themoviedb.org/3/trending/movie/day'
 TMDB_GENRE_URL = 'https://api.themoviedb.org/3/genre/movie/list'
 
