@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions
 import requests
+import os
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
@@ -13,7 +14,7 @@ from django.db.models import Count
 from rest_framework import status
 from decouple import config
 
-TMDB_API_KEY = config('TMDB_API_KEY')
+TMDB_API_KEY = os.getenv('TMDB_API_KEY')
 
 # Implement Filtering by Genre, Date, and Trending
 class MovieFilter(django_filters.FilterSet):
