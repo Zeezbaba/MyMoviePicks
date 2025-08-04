@@ -26,4 +26,5 @@ COPY . /app/
 # RUN python manage.py collectstatic --noinput
 
 # Default command (override in docker-compose.yml)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "MyMoviePicks.wsgi:application", "--bind", "0.0.0.0:8000"]

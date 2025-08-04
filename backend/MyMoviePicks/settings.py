@@ -26,9 +26,9 @@ SECRET_KEY = config('SECRET_KEY')
 TMDB_API_KEY = config('TMDB_API_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
