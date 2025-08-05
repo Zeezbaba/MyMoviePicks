@@ -102,11 +102,11 @@ SIMPLE_JWT = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-print("DB_NAME:", os.getenv("DB_NAME"))
-print("DB_USER:", os.getenv("DB_USER"))
-print("DB_PASSWORD:", os.getenv("DB_PASSWORD"))
-print("DB_HOST:", os.getenv("DB_HOST"))
-print("DB_PORT:", os.getenv("DB_PORT"))
+# print("DB_NAME:", os.getenv("DB_NAME"))
+# print("DB_USER:", os.getenv("DB_USER"))
+# print("DB_PASSWORD:", os.getenv("DB_PASSWORD"))
+# print("DB_HOST:", os.getenv("DB_HOST"))
+# print("DB_PORT:", os.getenv("DB_PORT"))
 
 
 # Database
@@ -122,12 +122,16 @@ print("DB_PORT:", os.getenv("DB_PORT"))
 #         'PORT': os.getenv('DB_PORT'),
 #     }
 # }
+print("DATABASE_URL:", os.getenv("DATABASE_URL"))
 
 DATABASES = {
-    'default': dj_database_url.config(default=os.environ.get("DATABASE_URL", ""))
+    'default': dj_database_url.config(
+        default=os.environ.get("DATABASE_URL", ""),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
-print("DATABASE_URL:", os.getenv("DATABASE_URL"))
 
 # # ✅ Database using DATABASE_URL (recommended for Railway)
 # DATABASE_URL = os.getenv("DATABASE_URL")
