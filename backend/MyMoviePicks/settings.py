@@ -124,7 +124,7 @@ print("DB_PORT:", os.getenv("DB_PORT"))
 # }
 
 DATABASES = {
-    'default': dj_database_url.config(default=config("DATABASE_URL"))
+    'default': dj_database_url.config(default=os.environ.get("DATABASE_URL", ""))
 }
 
 print("DATABASE_URL:", os.getenv("DATABASE_URL"))
