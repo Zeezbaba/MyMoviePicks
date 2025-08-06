@@ -122,13 +122,21 @@ CORS_ALLOW_ALL_ORIGINS = True
 #         'PORT': os.getenv('DB_PORT'),
 #     }
 # }
-print("DATABASE_URL:", os.getenv("DATABASE_URL"))
 
+DATABASE_URL = "postgresql://postgres:OIgLWloBVcHUpsmZikOtCZoeegYXLJuO@postgres.railway.internal:5432/railway"
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get("DATABASE_URL")
-    )
+    'default': dj_database_url.parse(DATABASE_URL)
 }
+
+print(DATABASE_URL)
+
+# print("DATABASE_URL:", os.getenv("DATABASE_URL"))
+
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.environ.get("DATABASE_URL")
+#     )
+# }
 
 
 # # ✅ Database using DATABASE_URL (recommended for Railway)
