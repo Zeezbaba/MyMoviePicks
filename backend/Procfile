@@ -1,0 +1,1 @@
+web: gunicorn mymoviepicks.wsgi --log-file -
