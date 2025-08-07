@@ -123,12 +123,15 @@ CORS_ALLOW_ALL_ORIGINS = True
 #     }
 # }
 
-print("DATABASE_URL:", os.getenv("DATABASE_URL"))
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("❌ DATABASE_URL is not set! Please add it to your environment variables.")
+
+print("✅ DATABASE_URL found:", DATABASE_URL)
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get("DATABASE_URL")
-    )
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 }
 
 
