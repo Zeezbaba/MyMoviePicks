@@ -128,7 +128,8 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("❌ DATABASE_URL is not set! Please add it to your environment variables.")
 
-print("✅ DATABASE_URL found:", DATABASE_URL)
+# print("✅ DATABASE_URL found:", DATABASE_URL)
+print("✅ DATABASE_URL found:", repr(DATABASE_URL))
 
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
