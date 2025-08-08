@@ -31,6 +31,7 @@ TMDB_API_KEY = os.getenv("TMDB_API_KEY", config("TMDB_API_KEY", default=""))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
+# DEBUD = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -216,3 +217,5 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 SCHEDULER_AUTOSTART = True
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
