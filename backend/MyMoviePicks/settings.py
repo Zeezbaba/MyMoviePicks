@@ -31,7 +31,7 @@ TMDB_API_KEY = os.getenv("TMDB_API_KEY", config("TMDB_API_KEY", default=""))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = os.getenv("DEBUG", "False") == "True"
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
