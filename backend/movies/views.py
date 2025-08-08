@@ -130,7 +130,7 @@ class GenreMoviesFromTMDb(APIView):
 
 class MovieRatingAPIView(generics.CreateAPIView):
     queryset = MovieRating.objects.all()
-    serializer = MovieRatingSerializer
+    serializer_class = MovieRatingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
