@@ -87,4 +87,5 @@ const movies = [
   },
 ];
 
+
 export { background, moviesSlides, movies, moviePic, authbg, anotherMoviePic };

@@ -28,7 +28,7 @@ const Movie = () => {
   return (
     <div className="text-white px-5 md:px-[5%] xl:px-[15%] mt-10 ">
     
-      <video controls className="w-full h-full" preload="none">
+      <video controls className="w-full h-[70vh] object-cover" preload="none" poster="/background.jpg">
         <source src="/video.mp4" type="video/mp4" />
       </video>
       {/* <Image

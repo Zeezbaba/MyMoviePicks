@@ -1,23 +1,25 @@
 import Button from "@/components/common/Button";
 import AuthLayout from "@/components/layout/AuthLayout";
-import { authbg } from "@/constants";
-import Image from "next/image";
+import usePost from "@/hooks/usePost";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
-import { BiHide, BiShow } from "react-icons/bi";
+import toast from "react-hot-toast";
+import { BiHide, BiLoaderCircle, BiShow } from "react-icons/bi";
 
 interface LoginData {
-  email: string;
+  username: string;
   password: string;
 }
 
 const Login: React.FC = () => {
   const [form, setForm] = useState<LoginData>({
-    email: "",
+    username: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const { postRequest, data, error, loading } = usePost();
+
   const router = useRouter();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,25 +32,36 @@ const Login: React.FC = () => {
     });
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    router.push("/");
+    await postRequest(
+      "/users/login/",
+      form,
+      "Login success",
+      "Error occured whilst logging in",
+      "/"
+    );
+    localStorage.setItem("token", data?.access)
+    localStorage.setItem("refreshToken", data?.refresh)
   };
+  console.log(data);
 
   return (
     <AuthLayout>
       <div className="login w-full">
         <h2 className="md:text-2xl">Welcome back,</h2>
-        <p className="text-gray-300 text-sm md:text-base">Sign in to your account</p>
+        <p className="text-gray-300 text-sm md:text-base">
+          Sign in to your account
+        </p>
         <form className="my-6 space-y-3" onSubmit={handleSubmit}>
           <div className="email flex flex-col gap-">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="username">Username</label>
             <input
-              name="email"
-              value={form.email}
-              placeholder="Enter your email address"
+              name="username"
+              value={form.username}
+              placeholder="Enter your username"
               type="text"
-              id="email"
+              id="username"
               className="border border-gray-300 p-2 rounded-md text-sm md:text-base w-full"
               onChange={handleChange}
             />
@@ -81,10 +94,19 @@ const Login: React.FC = () => {
             </span>
           </div>
           <p className="text-right">Forgot password?</p>
+
           <Button
             name="Sign in"
-            styles="bg-blue-500 w-full py-2 rounded-lg cursor-pointer shadow-md tracking-tight"
-            action={() => router.push("/")}
+            styles={`${
+              loading && "opacity-50"
+            } bg-blue-500 w-full py-2 rounded-lg cursor-pointer shadow-md tracking-tight my-3 flex flex-row items-center justify-center gap-2`}
+            icon={
+              <BiLoaderCircle
+                size={20}
+                color="white"
+                className={`${loading ? "animate-spin" : "hidden"}`}
+              />
+            }
           />
           <div className="flex items-center justify-center my-5">
             <p>
