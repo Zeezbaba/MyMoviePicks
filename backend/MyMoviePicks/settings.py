@@ -30,8 +30,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", config("SECRET_KEY", default="fallback-in-d
 TMDB_API_KEY = os.getenv("TMDB_API_KEY", config("TMDB_API_KEY", default=""))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
-# DEBUD = False
+# DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
