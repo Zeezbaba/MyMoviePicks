@@ -82,28 +82,40 @@ def sync_genres_from_tmdb():
         )
 
 def save_trending_movies():
+    if not TMDB_API_KEY:
+        return {"error": "TMDB_API_KEY missing."}
+
+    url = f"{TMDB_API_URL}/trending/movie/week"
     try:
-        response = requests.get(TMDB_TRENDING_URL, params={"api_key": TMDB_API_KEY})
+        response = requests.get(url, params={"api_key": TMDB_API_KEY}, timeout=10)
         response.raise_for_status()
-        data = response.json()
+        results = response.json().get("results", [])
 
-        if "results" not in data:
-            return {"error": "Unexpected TMDb response", "data": data}
-
-        for item in data["results"]:
-            Movie.objects.update_or_create(
+        saved_movies = []
+        for item in results:
+            movie, created = Movie.objects.update_or_create(
                 tmdb_id=item.get("id"),
                 defaults={
                     "title": item.get("title"),
                     "overview": item.get("overview", ""),
-                    "poster_path": item.get("poster_path"),
-                    "release_date": item.get("release_date"),
-                },
+                    "poster_path": item.get("poster_path") or "",
+                    "release_date": item.get("release_date") or None,
+                    "is_trending": True,
+                }
             )
 
-        return {"status": "success", "count": len(data["results"])}
+            # Handle genres
+            movie.genres.clear()
+            for genre_id in item.get("genre_ids", []):
+                genre = Genre.objects.filter(tmdb_id=genre_id).first()
+                if genre:
+                    movie.genres.add(genre)
 
-    except requests.exceptions.RequestException as e:
+            saved_movies.append(movie)
+
+        return {"status": "success", "count": len(saved_movies)}
+
+    except requests.RequestException as e:
         return {"error": f"TMDb request failed: {e}"}
     except Exception as e:
         return {"error": f"Unexpected error: {e}"}
