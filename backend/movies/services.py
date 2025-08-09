@@ -56,69 +56,119 @@ def get_trending_movies():
     cache.set(cache_key, data, CACHE_TIMEOUT)
     return data
 
+# def sync_genres_from_tmdb():
+#     cache_key = "tmdb_genres"
+#     cached_data = cache.get(cache_key)
+
+#     if cached_data:
+#         genres = cached_data
+
+#     else:
+#         url = "https://api.themoviedb.org/3/genre/movie/list"
+#         params = {"api_key": TMDB_API_KEY} # settings.TMDB_API_KEY
+
+#         response = requests.get(url, params=params)
+#         if response.status_code == 200:
+#             genres = response.json().get("genres", [])
+#             cache.set(cache_key, genres, CACHE_TIMEOUT)
+#         else:
+#             print(f"Failed to fetch genres: {response.status_code} - {response.text}")
+#             return
+
+#     for genre in genres:
+#         Genre.objects.update_or_create(
+#             tmdb_id=genre["id"],
+#             defaults={"name": genre["name"]}
+#         )
+
+# Unified function to fetch & sync genres
 def sync_genres_from_tmdb():
-    cache_key = "tmdb_genres"
-    cached_data = cache.get(cache_key)
-
-    if cached_data:
-        genres = cached_data
-
-    else:
-        url = "https://api.themoviedb.org/3/genre/movie/list"
-        params = {"api_key": TMDB_API_KEY} # settings.TMDB_API_KEY
-
-        response = requests.get(url, params=params)
-        if response.status_code == 200:
-            genres = response.json().get("genres", [])
-            cache.set(cache_key, genres, CACHE_TIMEOUT)
-        else:
-            print(f"Failed to fetch genres: {response.status_code} - {response.text}")
-            return
-
-    for genre in genres:
-        Genre.objects.update_or_create(
-            tmdb_id=genre["id"],
-            defaults={"name": genre["name"]}
-        )
-
-def save_trending_movies():
+    """
+    Fetches genres from TMDB and stores them in the database.
+    """
     if not TMDB_API_KEY:
-        return {"error": "TMDB_API_KEY missing."}
+        return []
 
-    url = f"{TMDB_API_URL}/trending/movie/week"
     try:
-        response = requests.get(url, params={"api_key": TMDB_API_KEY}, timeout=10)
-        response.raise_for_status()
-        results = response.json().get("results", [])
+        response = requests.get(
+            f"https://api.themoviedb.org/3/genre/movie/list",
+            params={"api_key": TMDB_API_KEY, "language": "en-US"},
+            timeout=10
+        )
+        if response.status_code == 200:
+            genres_data = response.json().get("genres", [])
+            for g in genres_data:
+                Genre.objects.update_or_create(
+                    tmdb_id=g["id"], defaults={"name": g["name"]}
+                )
+            return genres_data
+    except requests.RequestException as e:
+        print(f"Error fetching genres: {e}")
 
+    return []
+
+# Save trending movies & refresh cache
+def save_trending_movies():
+    """
+    Fetch trending movies from TMDB, update DB, and refresh cache.
+    """
+    if not TMDB_API_KEY:
+        return []
+
+    sync_genres_from_tmdb()  # ensure genres are updated
+
+    try:
+        response = requests.get(
+            f"https://api.themoviedb.org/3/trending/movie/day",
+            params={"api_key": TMDB_API_KEY},
+            timeout=10
+        )
+        if response.status_code != 200:
+            print(f"Error fetching trending movies: {response.status_code}")
+            return []
+
+        movies_data = response.json().get("results", [])
         saved_movies = []
-        for item in results:
+
+        for item in movies_data:
             movie, created = Movie.objects.update_or_create(
-                tmdb_id=item.get("id"),
+                tmdb_id=item["id"],
                 defaults={
-                    "title": item.get("title"),
+                    "title": item["title"],
                     "overview": item.get("overview", ""),
-                    "poster_path": item.get("poster_path") or "",
-                    "release_date": item.get("release_date") or None,
+                    "release_date": item.get("release_date"),
+                    "poster_path": item.get("poster_path"),
                     "is_trending": True,
                 }
             )
 
-            # Handle genres
-            movie.genres.clear()
-            for genre_id in item.get("genre_ids", []):
-                genre = Genre.objects.filter(tmdb_id=genre_id).first()
-                if genre:
-                    movie.genres.add(genre)
+            genre_ids = item.get("genre_ids", [])
+            if genre_ids:
+                movie.genres.set(Genre.objects.filter(tmdb_id__in=genre_ids))
 
             saved_movies.append(movie)
 
-        return {"status": "success", "count": len(saved_movies)}
+        # ✅ Refresh cache so get_trending_movies() is always up-to-date
+        cache.set(
+            "trending_movies",
+            [
+                {
+                    "id": m.id,
+                    "title": m.title,
+                    "overview": m.overview,
+                    "release_date": m.release_date,
+                    "poster_path": m.poster_path,
+                }
+                for m in saved_movies
+            ],
+            timeout=60 * 15  # 15 min
+        )
+
+        return saved_movies
 
     except requests.RequestException as e:
-        return {"error": f"TMDb request failed: {e}"}
-    except Exception as e:
-        return {"error": f"Unexpected error: {e}"}
+        print(f"Error fetching trending movies: {e}")
+        return []
 
 # def save_trending_movies():
 #     movies = get_trending_movies()
@@ -199,3 +249,27 @@ def get_recommended_movies(movie_id):
         cache.set(cache_key, data, CACHE_TIMEOUT)
         return data
     return []
+
+# Get trending movies from cache or DB
+# def get_trending_movies():
+#     """
+#     Retrieve trending movies, using cache first.
+#     """
+#     cached_movies = cache.get("trending_movies")
+#     if cached_movies:
+#         return cached_movies
+
+#     # No cache — fetch from DB
+#     trending_movies = Movie.objects.filter(is_trending=True)
+#     data = [
+#         {
+#             "id": m.id,
+#             "title": m.title,
+#             "overview": m.overview,
+#             "release_date": m.release_date,
+#             "poster_path": m.poster_path,
+#         }
+#         for m in trending_movies
+#     ]
+#     cache.set("trending_movies", data, timeout=60 * 15)
+#     return data
