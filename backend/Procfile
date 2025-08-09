@@ -1,1 +1,2 @@
-web: gunicorn MyMoviePicks.wsgi --log-file -
+release: python manage.py collectstatic --noinput
+web: gunicorn MyMoviePicks.wsgi:application --log-file -
