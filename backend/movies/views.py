@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions
 import requests
 import os
+from drf_yasg import openapi
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
@@ -73,8 +74,21 @@ class SaveTrendingMoviesView(APIView):
         serializer = MovieSerializer(saved_movies, many=True)
         return Response(serializer.data)
 
+
 class SearchMovieView(APIView):
     permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'query', openapi.IN_QUERY,
+                description="Search term for the movie",
+
+                type=openapi.TYPE_STRING, required=True
+            )
+        ],
+        response={200: 'List of movies'}
+    )
 
     def get(self, request):
         query = request.GET.get("query")
