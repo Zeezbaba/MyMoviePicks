@@ -180,6 +180,17 @@ USE_TZ = True
 #         }
 #     }
 # }
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'JWT Authorization header using the Bearer scheme'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+}
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")  # fallback for local dev
 
