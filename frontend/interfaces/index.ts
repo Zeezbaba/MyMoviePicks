@@ -26,16 +26,24 @@ export interface MovieDetails {
   cast: string;
 }
 
-export interface MovieCardProps {
-  data: {
+export interface Movie {
+  id: number;
+  is_trending: boolean;
+  overview: string;
+  poster_path: string;
+  release_date: string;
+  title: string;
+  tmdb_id: number;
+  genres: {
     id: number;
+    tmdb_id: number;
     name: string;
-    imageUrl: string;
-    duration: string;
-    rating: number;
-    categories: string[];
-  };
-  index: number;
+  }[];
+}
+export interface MovieCardProp {
+  data: Movie;
+  action?: () => void;
+  path: string;
 }
 
 export interface SearchModalProps {

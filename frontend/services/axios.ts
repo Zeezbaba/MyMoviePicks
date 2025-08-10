@@ -23,7 +23,9 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     const config = error.config;
-    if (error.response?.status == 401) {
+    const token = localStorage.getItem("token")
+    console.log(token)
+    if (error.response?.status === 401) {
       localStorage.removeItem("token");
       window.location.href = "/auth/login";
     }

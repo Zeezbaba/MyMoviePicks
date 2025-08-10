@@ -4,10 +4,12 @@ import { MdOutlineMenu } from "react-icons/md";
 import Link from "next/link";
 import SearchModal from "./SearchModal";
 import { BiSearch } from "react-icons/bi";
+import { useMyContext } from "@/context";
 
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const { isAuthorized } = useMyContext();
   return (
     <header
       className={`bg-[#171717] text-white py-5 px-5 flex justify-between md:justify-center fixed inset-x-0 top-0 z-10`}
@@ -22,9 +24,7 @@ const Header: React.FC = () => {
           <li className="cursor-pointer hover:opacity-90">
             <Link href={`/trending`}>Trending</Link>
           </li>
-          <li className="cursor-pointer hover:opacity-90">
-            <Link href={`/favorite`}>Favorite</Link>
-          </li>
+          
           <li
             className="cursor-pointer hover:opacity-90 hidden md:block"
             onClick={() => setIsSearchOpen(true)}
@@ -37,14 +37,22 @@ const Header: React.FC = () => {
             </div>
           </li>
           <li className="cursor-pointer hover:opacity-90">
+            <Link href={`/favorite`}>Favorite</Link>
+          </li>
+          <li className="cursor-pointer hover:opacity-90">
             <Link href={`/genre`}>Genre</Link>
           </li>
-          <li className="cursor-pointer hover:opacity-90">
-            <Link href={`/auth/signup`}>Signup</Link>
-          </li>
-          <li className="cursor-pointer hover:opacity-90">
-            <Link href={`/auth/login`}>Login</Link>
-          </li>
+          {!isAuthorized && (
+            <>
+              {" "}
+              <li className="cursor-pointer hover:opacity-90">
+                <Link href={`/auth/signup`}>Signup</Link>
+              </li>
+              <li className="cursor-pointer hover:opacity-90">
+                <Link href={`/auth/login`}>Login</Link>
+              </li>
+            </>
+          )}
         </ul>
       </nav>
       <div className="flex gap-2 md:hidden">
@@ -57,7 +65,7 @@ const Header: React.FC = () => {
       </div>
 
       {isOpen && (
-        <div className="fixed right-0 w-1/2 bottom-0 top-16 transition-all duration-500 ease-in-out z-99  bg-[#171717] flex  justify-center p-5">
+        <div className="fixed right-0 w-1/2 bottom-0 top-16 transition-all duration-500 ease-in-out   bg-[#171717] flex  justify-center p-5">
           <nav className="block md:hidden">
             <ul className="flex flex-col items-center gap-5">
               <li

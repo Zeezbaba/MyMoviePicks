@@ -1,16 +1,13 @@
 import Button from "@/components/common/Button";
 import List from "@/components/common/List";
-import { moviePic } from "@/constants";
-import useFetch from "@/hooks/useFetch";
-import { MovieDetails } from "@/interfaces";
+import { useMyContext } from "@/context";
+import axiosInstance from "@/services/axios";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { BiLoaderCircle } from "react-icons/bi";
-import { FaStar } from "react-icons/fa6";
 import { IoIosAdd } from "react-icons/io";
-import { IoCalendarOutline } from "react-icons/io5";
-import { MdOutlineAvTimer } from "react-icons/md";
 
 interface Movie {
   id: number;
@@ -26,54 +23,81 @@ interface Movie {
     name: string;
   }[];
 }
-const Movie = () => {
-  const movieInfo: MovieDetails = {
-    imageUrl: moviePic,
-    title: "Silo",
-    category: ["Drama", "Science Fiction"],
-    release_year: 2023,
-    duration: "50:38",
-    rating: 8.5,
-    description:
-      "In a ruined and toxic future, a community exists in a giant underground silo that plunges hundreds of stories deep. There, men and women live in a society full of regulations they believe are meant to protect them.",
-    country: "United States",
-    genre: "Drama, Science Fiction",
-    release_date: "May 05 2023",
-    production: "AMC Studios",
-    cast: "Tim Robbins, Rebecca Ferguson,  Avi Nash",
+
+interface Favorite {
+  movie: {
+    title: string;
+    overview: string;
+    release_date: string;
+    poster_path: string;
+    tmdb_id: number;
+    is_trending: boolean;
   };
-  const [movie, setMovie] = useState<Movie>();
+}
+
+const Movie = () => {
+  const [movie, setMovie] = useState<any>();
   const router = useRouter();
   const query = router.query;
+  const context = useMyContext();
+  console.log(context?.genreThumbId);
 
-  const { data, loading, error } = useFetch("/movies/");
-  console.log(data?.data?.results);
+  //Function
+  const [genreData, setGenreData] = useState([]);
+  const [genreLoading, setGenreLoading] = useState<boolean>(false);
+
+  const fetchData = async (id: number) => {
+    setGenreLoading(true);
+    console.log(`Rendering...`);
+    try {
+      const response = await axiosInstance.get(`/movies/genres/${id}/movies/`);
+      console.log(response);
+      setGenreData(response.data);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setGenreLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (data) {
-      const findMovie: Movie = data?.data?.results.find(
-        (content: any) => content.id == query.id
-      );
-      setMovie(findMovie);
+    console.log(`Fetching...`);
+    fetchData(context?.genreThumbId as number);
+    if (genreData) {
+      setMovie(genreData);
     }
-  }, [data]);
+  }, []);
 
-  console.log(movie);
+  const filteredData: any = genreData?.find(
+    (content: any) => content?.id == query.id
+  );
+  console.log(genreData?.find((content: any) => content?.id == query.id));
+
+  const addFavorite = async (data: number) => {
+    console.log(data);
+    try {
+      const response = await axiosInstance.post("/movies/favorites/", {movie_id: data});
+      console.log(response);
+      toast.success("Added to favorites");
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="text-white px-5 md:px-[5%] xl:px-[15%] mt-10 ">
-      {loading ? (
+      {genreLoading ? (
         <div className="w-full h-[30vh] flex items-center justify-center">
           <BiLoaderCircle
             size={30}
             color="white"
-            className={`${loading ? "animate-spin" : "hidden"}`}
+            className={`${genreLoading ? "animate-spin" : "hidden"}`}
           />
         </div>
       ) : (
         <>
           <Image
-            src={`https://image.tmdb.org/t/p/w500${movie?.poster_path}`}
+            src={`https://image.tmdb.org/t/p/w500${filteredData?.poster_path}`}
             alt="video"
             width={600}
             height={600}
@@ -82,7 +106,7 @@ const Movie = () => {
           <h2 className="text-xl mt-10">Movie Description</h2>
           <div className="my-10 flex flex-col md:flex-row gap-5">
             <Image
-              src={`https://image.tmdb.org/t/p/w500${movie?.poster_path}`}
+              src={`https://image.tmdb.org/t/p/w500${filteredData?.poster_path}`}
               width={600}
               height={600}
               alt="movie"
@@ -90,14 +114,19 @@ const Movie = () => {
             />
             <div className="right flex-grow">
               <div className="head flex justify-between items-center w-full">
-                <h2 className="text-xl md:text-3xl">{movie?.title}</h2>
+                <h2 className="text-xl md:text-xl w-2/3">
+                  {filteredData?.title}
+                </h2>
                 <Button
-                  name="Add to Favorite"
-                  styles="bg-red-500 text-white py-1 px-2 md:p-3 text-s md:text-base cursor-pointer md:font-semibold flex flex-row-reverse items-center md:gap-3 rounded-lg hover:opacity-90"
+                  name="Add Favorite"
+                  styles="bg-red-500 text-white py-1 px-2 text-sm cursor-pointer md:font-semibold flex items-center justify-center flex-row-reverse items-center md:gap-3 rounded-lg hover:opacity-90"
                   icon={<IoIosAdd size={25} />}
+                  action={() => {
+                    addFavorite(filteredData?.id);
+                  }}
                 />
               </div>
-              <div className="rest md:mt-7 xl:mt-14 flex flex-col md:flex-row gap-5 md:items-center">
+              {/* <div className="rest md:mt-7 xl:mt-14 flex flex-col md:flex-row gap-5 md:items-center">
                 <div className="space-x-2 md:space-x-5 mt-5 md:mt-0">
                   {movie?.genres.map(({ name }, index: number) => {
                     return (
@@ -110,22 +139,8 @@ const Movie = () => {
                     );
                   })}
                 </div>
-                <div className="flex flex-row gap-3">
-                  <div className="date flex items-center gap-2">
-                    <IoCalendarOutline size={20} />
-                    <span>{movie?.release_date}</span>
-                  </div>
-                  <div className="date flex items-center gap-2">
-                    <MdOutlineAvTimer />
-                    {movieInfo.duration}
-                  </div>
-                  <div className="date flex items-center gap-2">
-                    <FaStar />
-                    {movieInfo.rating}
-                  </div>
-                </div>
-              </div>
-              <p className="my-4 max-w-2xl">{movie?.overview}</p>
+              </div> */}
+              <p className="my-4 max-w-2xl">{filteredData?.overview}</p>
               <List name="Country" value="United States" />
               <List name="Genre" value="Drama, Science Fiction" />
               <List name="Date Release" value="May 05 2023" />

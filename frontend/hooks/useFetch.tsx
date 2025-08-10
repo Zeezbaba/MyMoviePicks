@@ -1,20 +1,26 @@
 import axiosInstance from "@/services/axios";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-const useFetch = (url: string) => {
+interface optionsProps {
+  params?: {
+    page?: number;
+    ordering?: string;
+    title?: string;
+    query?: string;
+  };
+}
+
+const useFetch = (url: string, options?: optionsProps) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<any>("");
-  
 
-  const fetchCallback = useCallback(async (signal: any) => {
+  const fetchCallback = async (signal: any) => {
     setLoading(true);
     try {
       const response = await axiosInstance.get(url, {
         signal,
-        params: {
-          page: 10,
-        },
+        ...options,
       });
       setData(response);
     } catch (error) {
@@ -23,13 +29,26 @@ const useFetch = (url: string) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
+  // /useCallback(
+  //, []);
   useEffect(() => {
     const abortController = new AbortController();
     const signal = abortController.signal;
-    fetchCallback(signal);
-  }, [url]);
+    let debouncingSearch: any;
+    if (options?.params?.title) {
+      debouncingSearch = setTimeout(() => {
+        fetchCallback(signal);
+      }, 500);
+    } else {
+      fetchCallback(signal);
+    }
+
+    return () => {
+      clearTimeout(debouncingSearch);
+    };
+  }, [url, options?.params?.page, options?.params?.title]);
   return { data, loading, error };
 };
 

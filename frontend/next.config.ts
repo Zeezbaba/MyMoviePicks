@@ -29,6 +29,14 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "**", // matches all paths under the hostname
       },
+      {
+        protocol: "https",
+        hostname: "image.tmdb.org",
+        port: "",
+        pathname: "**", // matches all paths under the hostname
+      },
+
+      
 
     ],
   },

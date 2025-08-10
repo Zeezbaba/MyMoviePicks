@@ -1,5 +1,7 @@
 import { movies } from "@/constants";
+import useFetch from "@/hooks/useFetch";
 import { SearchModalProps } from "@/interfaces";
+import axiosInstance from "@/services/axios";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
@@ -9,36 +11,50 @@ import { RiSearchLine } from "react-icons/ri";
 
 const SearchModal: React.FC<SearchModalProps> = ({ action }) => {
   const [search, setSearch] = useState("");
-  const [fetchedData, setFetchData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any>("");
+  const [error, setError] = useState<any>("");
+  const [loading, setLoading] = useState(false);
 
-  const FetchMovies = useCallback(async () => {
+  const fetchData = async (search: string) => {
+    console.log(`Fetching...`);
     setLoading(true);
     try {
-      const response = await fetch("/api/tryFetch", {
-        method: "GET",
+      const response = await axiosInstance.get("/movies/search/", {
+        params: {
+          query: search,
+        },
       });
-      const data = await response.json();
-      console.log(data);
-      setFetchData(data);
-      setLoading(false);
+      console.log(response.data);
+      setData(response.data);
     } catch (error) {
-      console.error(error);
-      setLoading(false);
+      setError(error);
+      console.log(error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
-    FetchMovies();
-  }, []);
+    console.log(`Starting...`);
+    const debouncingSearch = setTimeout(() => {
+      if (search !== "") {
+        console.log(`Searching...`);
+        fetchData(search);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(debouncingSearch);
+    };
+  }, [search]);
+
+  console.log(data);
 
   return (
     <div className="fixed inset-0 bg-transparent flex items-center justify-center">
-      <div className="w-full h-full md:w-1/3 md:rounded-xl md:h-2/3 bg-black z-10 p-5 space-y-5">
+      <div className="w-full h-full md:w-2/5 md:rounded-xl md:h-2/3 bg-black z-10 p-5 space-y-5 overflow-hidden overflow-y-scroll no-scrollbar">
         <div className="flex justify-between items-center ">
-          <h2>My Movie Picks</h2>
+          <h2 className="text-yellow-600">My Movie Picks</h2>
           <IoClose size={30} onClick={action} className="cursor-pointer" />
         </div>
         <form>
@@ -56,25 +72,35 @@ const SearchModal: React.FC<SearchModalProps> = ({ action }) => {
             <RiSearchLine color="black" className="cursor-pointer" />
           </span>
         </form>
-        <div className="search-results flex flex-col gap-5 overflow-hidden ">
+        <div className="search-results flex flex-col gap-5 overflow-hidden overflow-y-scroll">
           {loading ? (
-            <div className="flex items-center justify-center">
-               <BiLoaderCircle size={30} className="animate-spin" />
+            <div className="flex items-center justify-center h-[30vh]">
+              <BiLoaderCircle
+                size={30}
+                color="white"
+                className="animate-spin"
+              />
             </div>
-           
           ) : (
-            fetchedData?.map(({ name, id, imageUrl, categories }, index) => (
-              <div key={index} className="h-14 flex gap-2">
-                <Image src={imageUrl} alt="movie-image" width={60} height={60} className="object-cover h-full rounded-lg" />
+            data &&
+            data?.map((data: any, index: number) => (
+              <div key={index} className="h-14 flex gap-2 ">
+                <Image
+                  src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}
+                  alt="movie-image"
+                  width={60}
+                  height={60}
+                  className="object-cover rounded-lg"
+                />
                 <div>
-                  <Link href={`/movie/${name}`} onClick={action} className="text-gray-500">{name}</Link>
-                  <div className="space-x-1">
-                    {
-                      categories?.map(category => (
-                          <span className="text-xs bg-red-500 text-white p-1 rounded-full">{category}</span>
-                      ))
-                    }
-                  </div>
+                  <Link
+                    href={`/movie/trending/${data?.id}`}
+                    onClick={action}
+                    className="text-gray-400 font-semibold"
+                  >
+                    {data?.title}
+                  </Link>
+                  
                 </div>
               </div>
             ))

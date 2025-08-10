@@ -1,8 +1,6 @@
 import Button from "@/components/common/Button";
 import AuthLayout from "@/components/layout/AuthLayout";
 import usePost from "@/hooks/usePost";
-import { createAccountAug } from "@/interfaces";
-import { createAccount } from "@/services/axios";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useCallback, useState } from "react";

@@ -26,7 +26,7 @@ interface Movie {
     name: string;
   }[];
 }
-const Movie = () => {
+const TrendingMovie = () => {
   const movieInfo: MovieDetails = {
     imageUrl: moviePic,
     title: "Silo",
@@ -46,14 +46,12 @@ const Movie = () => {
   const router = useRouter();
   const query = router.query;
 
-  const { data, loading, error } = useFetch("/movies/");
-  console.log(data?.data?.results);
+  const { data, loading, error } = useFetch("/movies/trending/");
+  console.log(data?.data.find((content: any) => content.id == query.id), query)
 
   useEffect(() => {
     if (data) {
-      const findMovie: Movie = data?.data?.results.find(
-        (content: any) => content.id == query.id
-      );
+      const findMovie: Movie = data?.data.find((content: any) => content.id == query.id);
       setMovie(findMovie);
     }
   }, [data]);
@@ -98,7 +96,7 @@ const Movie = () => {
                 />
               </div>
               <div className="rest md:mt-7 xl:mt-14 flex flex-col md:flex-row gap-5 md:items-center">
-                <div className="space-x-2 md:space-x-5 mt-5 md:mt-0">
+                {/* <div className="space-x-2 md:space-x-5 mt-5 md:mt-0">
                   {movie?.genres.map(({ name }, index: number) => {
                     return (
                       <span
@@ -109,7 +107,7 @@ const Movie = () => {
                       </span>
                     );
                   })}
-                </div>
+                </div> */}
                 <div className="flex flex-row gap-3">
                   <div className="date flex items-center gap-2">
                     <IoCalendarOutline size={20} />
@@ -142,4 +140,4 @@ const Movie = () => {
   );
 };
 
-export default Movie;
+export default TrendingMovie;

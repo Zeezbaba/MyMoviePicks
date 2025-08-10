@@ -1,5 +1,6 @@
 import Button from "@/components/common/Button";
 import AuthLayout from "@/components/layout/AuthLayout";
+import { useMyContext } from "@/context";
 import usePost from "@/hooks/usePost";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -19,7 +20,7 @@ const Login: React.FC = () => {
   });
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const { postRequest, data, error, loading } = usePost();
-
+  
   const router = useRouter();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,10 +42,8 @@ const Login: React.FC = () => {
       "Error occured whilst logging in",
       "/"
     );
-    localStorage.setItem("token", data?.access)
-    localStorage.setItem("refreshToken", data?.refresh)
+    
   };
-  console.log(data);
 
   return (
     <AuthLayout>
